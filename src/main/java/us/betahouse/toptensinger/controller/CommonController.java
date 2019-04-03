@@ -204,4 +204,14 @@ public class CommonController {
         MyWebSocket.sendInfo(socketMessage.toJSON());
         return commonPlayer;
     }
+
+    @CrossOrigin
+    @GetMapping("/score")
+    public ScoreResult getScoreResult(Long id){
+        Long activeContest=dictionaryUtil.getActiveContest();
+        List<Score> studentScoreList,teacherScoreList;
+        studentScoreList = scoreRepository.findByContestIdAndPlayerIdAndType(activeContest, id, ScoreType.STUDENT.name());
+        teacherScoreList= scoreRepository.findByContestIdAndPlayerIdAndType(activeContest, id, ScoreType.TEACHER.name());
+        return new ScoreResult(studentScoreList, teacherScoreList);
+    }
 }
