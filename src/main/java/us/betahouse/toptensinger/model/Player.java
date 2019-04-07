@@ -86,6 +86,9 @@ public class Player {
     @Column(name = "gmt_modified", nullable = false)
     private Date gmtModified;
 
+    /**
+     * 分数列表
+     */
     @JsonIgnore
     @OneToMany(mappedBy = "player",cascade=CascadeType.ALL,fetch=FetchType.EAGER)
     private List<Score> scoreList;

@@ -10,27 +10,29 @@ import us.betahouse.toptensinger.model.Score;
 import java.util.List;
 
 /**
+ * 分数存储仓库
+ *
  * @author MessiahJK
  * @version : ScoreRepository.java 2019/03/26 15:43 MessiahJK
  */
 public interface ScoreRepository extends JpaRepository<Score,Long> {
 
     /**
-     * 通过比赛id和使用者id查找
+     * 通过比赛id和选手id查找
      *
-     * @param contestId
-     * @param playerId
-     * @return
+     * @param contestId 比赛id
+     * @param playerId  选手id
+     * @return 分数列表
      */
     List<Score> findByContestIdAndPlayerId(Long contestId,Long playerId);
 
     /**
-     * 通过比赛id、使用者id、类型查找
+     * 通过比赛id、选手id、类型查找
      *
-     * @param contestId
-     * @param playerId
-     * @param type
-     * @return
+     * @param contestId 比赛id
+     * @param playerId 选手id
+     * @param type 类型
+     * @return 分数列表
      */
     List<Score> findByContestIdAndPlayerIdAndType(Long contestId,Long playerId,String type);
 }

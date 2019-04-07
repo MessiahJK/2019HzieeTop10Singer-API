@@ -2,7 +2,7 @@
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/toptensinger?serverTimezone=Asia/Shanghai&useSSL=false&characterEncoding=utf8
+    url: jdbc:mysql://120.79.91.97:3306/toptensinger?serverTimezone=Asia/Shanghai&useSSL=false&characterEncoding=utf8
     username: root
     password: uAiqwVwjJ8-i
   jpa:
@@ -12,3 +12,6 @@
         physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     show-sql: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: true

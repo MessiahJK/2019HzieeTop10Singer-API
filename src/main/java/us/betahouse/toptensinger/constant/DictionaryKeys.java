@@ -4,9 +4,11 @@
  */
 package us.betahouse.toptensinger.constant;
 
-import java.math.BigDecimal;
+
 
 /**
+ * 字典值
+ *
  * @author MessiahJK
  * @version : DictionaryKeys.java 2019/03/26 0:29 MessiahJK
  */

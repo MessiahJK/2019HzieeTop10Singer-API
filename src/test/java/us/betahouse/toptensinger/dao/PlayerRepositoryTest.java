@@ -47,6 +47,7 @@ public class PlayerRepositoryTest {
 
     @Test
     public void test1(){
+
         Player player=playerRepository.findById(1L).get();
         System.out.println(JSON.toJSONString(player));
         System.out.println(player.getScoreList().get(1).getPlayer());

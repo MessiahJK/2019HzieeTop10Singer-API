@@ -5,6 +5,8 @@
 package us.betahouse.toptensinger.constant;
 
 /**
+ * 分数类型
+ *
  * @author MessiahJK
  * @version : ScoreType.java 2019/03/26 21:12 MessiahJK
  */

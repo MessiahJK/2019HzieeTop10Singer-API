@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
+ * 通用控制层 可考虑分开
+ *
  * @author MessiahJK
  * @version : CommonController.java 2019/03/26 12:18 MessiahJK
  */
@@ -33,6 +35,14 @@ public class CommonController {
     private final ScoreRepository scoreRepository;
     private final PlayerRepository playerRepository;
 
+    /**
+     * 初始化控制层
+     *
+     * @param dictionaryUtil 字典工具
+     * @param contestRepository 比赛仓库
+     * @param scoreRepository 分数仓库
+     * @param playerRepository 用户仓库
+     */
     @Autowired
     public CommonController(DictionaryUtil dictionaryUtil, ContestRepository contestRepository, ScoreRepository scoreRepository, PlayerRepository playerRepository) {
         this.dictionaryUtil = dictionaryUtil;
@@ -41,12 +51,26 @@ public class CommonController {
         this.playerRepository = playerRepository;
     }
 
+    /**
+     * 获取比赛列表
+     *
+     * @return 比赛列表
+     */
     @CrossOrigin
     @GetMapping("/contest")
     public List<Contest> getContestList(){
         return contestRepository.findAll();
     }
 
+    /**
+     * 分数
+     *
+     * @param id 选手id
+     * @param scoreValue 分数
+     * @param type 类型
+     * @return boolean
+     * @throws IOException socket
+     */
     @CrossOrigin
     @PutMapping("/score")
     public Boolean putScore(Long id,BigDecimal scoreValue,String type) throws IOException {
@@ -67,15 +91,27 @@ public class CommonController {
         return true;
     }
 
+    /**
+     * 获取选手列表
+     *
+     * @return 选手列表
+     */
     @CrossOrigin
     @GetMapping("/playerList")
     public List<Player> getPlayerList(){
         Long activeContest=dictionaryUtil.getActiveContest();
         List<Player> playerList=playerRepository.findByContestId(activeContest);
-        playerList.forEach(this::completeIt);
+        playerList.forEach(this::complete);
         return  playerList;
     }
 
+    /**
+     * 重置选手分数
+     *
+     * @param id 选手id
+     * @return Boolean
+     * @throws IOException socket
+     */
     @CrossOrigin
     @DeleteMapping("/score")
     public Boolean resetScore(Long id) throws IOException {
@@ -93,16 +129,22 @@ public class CommonController {
         return true;
     }
 
+    /**
+     * 选择比赛
+     *
+     * @param id 比赛id
+     * @return 比赛列表
+     */
     @CrossOrigin
     @PostMapping("/contest")
     public List<Contest> chooseContest(Long id){
         Long activeContest=dictionaryUtil.getActiveContest();
         //修改旧活动
-        Contest contest=contestRepository.findById(activeContest).get();
+        Contest contest=contestRepository.getOne(activeContest);
         contest.setStatus("sleep");
         contestRepository.save(contest);
         //修改新活动
-        Contest newActiveContest=contestRepository.findById(id).get();
+        Contest newActiveContest=contestRepository.getOne(id);
         newActiveContest.setStatus("active");
         contestRepository.save(newActiveContest);
         //修改字典
@@ -110,11 +152,18 @@ public class CommonController {
         return getContestList();
     }
 
+    /**
+     * 获取选手实体 并广播
+     *
+     * @param id 选手id
+     * @return 选手实体
+     * @throws IOException socket
+     */
     @CrossOrigin
     @GetMapping("/player")
     public Player getPlayer(Long id) throws IOException {
         Player player=playerRepository.getOne(id);
-        completeIt(player);
+        complete(player);
         SocketMessage socketMessage=new SocketMessage();
         socketMessage.setName("player");
         socketMessage.add("player", player);
@@ -122,6 +171,12 @@ public class CommonController {
         return player;
     }
 
+    /**
+     * 获取分数列表
+     *
+     * @param id 选手id
+     * @return ScoreResult 包含教师分数及学生分数
+     */
     @CrossOrigin
     @GetMapping("/score")
     public ScoreResult getScoreResult(Long id){
@@ -132,7 +187,12 @@ public class CommonController {
         return new ScoreResult(studentScoreList, teacherScoreList);
     }
 
-    private void completeIt(Player player) {
+    /**
+     * 完善player 统计已投人数、平均分
+     *
+     * @param player 选手实体
+     */
+    private void complete(Player player) {
         if (player.getScoreList() == null || player.getScoreList().size() == 0) {
             player.setNumber(0);
             player.setAverageScore(BigDecimal.ZERO);

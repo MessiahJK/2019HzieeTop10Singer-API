@@ -13,6 +13,8 @@ import us.betahouse.toptensinger.model.Dictionary;
 import java.math.BigDecimal;
 
 /**
+ * 字典工具
+ *
  * @author MessiahJK
  * @version : DictionaryUtil.java 2019/03/26 0:28 MessiahJK
  */

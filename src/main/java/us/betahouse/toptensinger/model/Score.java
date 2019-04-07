@@ -22,6 +22,9 @@ import java.util.Date;
 @Data
 @EntityListeners(AuditingEntityListener.class)
 public class Score {
+    /**
+     * id
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,10 +35,19 @@ public class Score {
     private BigDecimal value;
 
 
+    /**
+     * 比赛场次
+     */
     private Long contestId;
 
+    /**
+     * 类型
+     */
     private String type;
 
+    /**
+     * 对应的选手
+     */
     @JsonIgnore
     @ManyToOne(cascade={CascadeType.MERGE,CascadeType.REFRESH},optional=false)
     @JoinColumn(name="player_id")
