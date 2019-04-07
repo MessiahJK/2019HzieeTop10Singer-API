@@ -4,6 +4,7 @@
  */
 package us.betahouse.toptensinger.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -30,14 +31,20 @@ public class Score {
      */
     private BigDecimal value;
 
-    private Long playerId;
 
     private Long contestId;
 
     private String type;
+
+    @JsonIgnore
+    @ManyToOne(cascade={CascadeType.MERGE,CascadeType.REFRESH},optional=false)
+    @JoinColumn(name="player_id")
+    private Player player;
+
     /**
      * 创建时间
      */
+    @JsonIgnore
     @CreatedDate
     @Column(name = "gmt_create", nullable = false)
     private Date gmtCreate;
@@ -45,7 +52,22 @@ public class Score {
     /**
      * 修改时间
      */
+    @JsonIgnore
     @LastModifiedDate
     @Column(name = "gmt_modified", nullable = false)
     private Date gmtModified;
+
+    @Override
+    public String toString() {
+        return "Score{" +
+                "id=" + id +
+                ", value=" + value +
+                ", contestId=" + contestId +
+                ", type='" + type + '\'' +
+                ", gmtCreate=" + gmtCreate +
+                ", gmtModified=" + gmtModified +
+                '}';
+    }
+
+
 }

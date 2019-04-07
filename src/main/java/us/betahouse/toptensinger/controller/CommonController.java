@@ -33,10 +33,6 @@ public class CommonController {
     private final ScoreRepository scoreRepository;
     private final PlayerRepository playerRepository;
 
-
-
-
-
     @Autowired
     public CommonController(DictionaryUtil dictionaryUtil, ContestRepository contestRepository, ScoreRepository scoreRepository, PlayerRepository playerRepository) {
         this.dictionaryUtil = dictionaryUtil;
@@ -59,7 +55,7 @@ public class CommonController {
         }
         Score score=new Score();
         score.setContestId(dictionaryUtil.getActiveContest());
-        score.setPlayerId(id);
+        score.setPlayer(playerRepository.getOne(id));
         score.setValue(scoreValue);
         score.setType(type);
         scoreRepository.save(score);
@@ -73,52 +69,11 @@ public class CommonController {
 
     @CrossOrigin
     @GetMapping("/playerList")
-    public List<CommonPlayer> getPlayerList(){
+    public List<Player> getPlayerList(){
         Long activeContest=dictionaryUtil.getActiveContest();
-        BigDecimal studentFractionRatio=dictionaryUtil.getStudentFractionRatio();
-        BigDecimal teacherFractionRatio=dictionaryUtil.getTeacherFractionRatio();
         List<Player> playerList=playerRepository.findByContestId(activeContest);
-        List<CommonPlayer> commonPlayerList=new ArrayList<>(16);
-        List<Score> scoreList,studentScoreList,teacherScoreList;
-        for(Player player:playerList){
-            scoreList=scoreRepository.findByContestIdAndPlayerId(activeContest, player.getId());
-            CommonPlayer commonPlayer=new CommonPlayer();
-            commonPlayer.setName(player.getName());
-            commonPlayer.setContestId(player.getContestId());
-            commonPlayer.setId(player.getId());
-            commonPlayer.setPlayerId(player.getPlayerId());
-            commonPlayer.setNumber(scoreList.size());
-            if(scoreList.size()!=0) {
-                BigDecimal studentScore = BigDecimal.ZERO;
-                BigDecimal teacherScore = BigDecimal.ZERO;
-                studentScoreList = scoreRepository.findByContestIdAndPlayerIdAndType(activeContest, player.getId(), ScoreType.STUDENT.name());
-                for (Score score : studentScoreList) {
-                    studentScore = studentScore.add(score.getValue());
-                }
-                if (studentScoreList.size() != 0) {
-                    studentScore = studentScore.divide(BigDecimal.valueOf(studentScoreList.size()),3,BigDecimal.ROUND_HALF_UP);
-                }
-                teacherScoreList = scoreRepository.findByContestIdAndPlayerIdAndType(activeContest, player.getId(), ScoreType.TEACHER.name());
-                for (Score score : teacherScoreList) {
-                    teacherScore = teacherScore.add(score.getValue());
-                }
-                if(teacherScoreList.size()!=0){
-                    teacherScore=teacherScore.divide(BigDecimal.valueOf(teacherScoreList.size()),3,BigDecimal.ROUND_HALF_UP);
-                }
-                if(studentScore.equals(BigDecimal.ZERO)){
-                    commonPlayer.setAverageScore(teacherScore);
-                }else if(teacherScore.equals(BigDecimal.ZERO)){
-                    commonPlayer.setAverageScore(studentScore);
-                }else{
-                    commonPlayer.setAverageScore(teacherScore.multiply(teacherFractionRatio).add(studentScore.multiply(studentFractionRatio)));
-                }
-
-            }else{
-                commonPlayer.setAverageScore(BigDecimal.ZERO);
-            }
-            commonPlayerList.add(commonPlayer);
-        }
-        return  commonPlayerList;
+        playerList.forEach(this::completeIt);
+        return  playerList;
     }
 
     @CrossOrigin
@@ -157,52 +112,14 @@ public class CommonController {
 
     @CrossOrigin
     @GetMapping("/player")
-    public CommonPlayer getPlayer(Long id) throws IOException {
-        Long activeContest=dictionaryUtil.getActiveContest();
-        BigDecimal studentFractionRatio=dictionaryUtil.getStudentFractionRatio();
-        BigDecimal teacherFractionRatio=dictionaryUtil.getTeacherFractionRatio();
+    public Player getPlayer(Long id) throws IOException {
         Player player=playerRepository.getOne(id);
-        List<Score> scoreList,studentScoreList,teacherScoreList;
-        scoreList=scoreRepository.findByContestIdAndPlayerId(activeContest, player.getId());
-
-        CommonPlayer commonPlayer=new CommonPlayer();
-        commonPlayer.setId(player.getId());
-        commonPlayer.setPlayerId(player.getPlayerId());
-        commonPlayer.setNumber(scoreList.size());
-        commonPlayer.setName(player.getName());
-        commonPlayer.setContestId(player.getContestId());
-        if(scoreList.size()!=0) {
-            BigDecimal studentScore = BigDecimal.ZERO;
-            BigDecimal teacherScore = BigDecimal.ZERO;
-            studentScoreList = scoreRepository.findByContestIdAndPlayerIdAndType(activeContest, player.getId(), ScoreType.STUDENT.name());
-            for (Score score : studentScoreList) {
-                studentScore = studentScore.add(score.getValue());
-            }
-            if (studentScoreList.size() != 0) {
-                studentScore = studentScore.divide(BigDecimal.valueOf(studentScoreList.size()),3,BigDecimal.ROUND_HALF_UP);
-            }
-            teacherScoreList = scoreRepository.findByContestIdAndPlayerIdAndType(activeContest, player.getId(), ScoreType.TEACHER.name());
-            for (Score score : teacherScoreList) {
-                teacherScore = teacherScore.add(score.getValue());
-            }
-            if(teacherScoreList.size()!=0){
-                teacherScore=teacherScore.divide(BigDecimal.valueOf(teacherScoreList.size()),3,BigDecimal.ROUND_HALF_UP);
-            }
-            if(studentScore.equals(BigDecimal.ZERO)){
-                commonPlayer.setAverageScore(teacherScore);
-            }else if(teacherScore.equals(BigDecimal.ZERO)){
-                commonPlayer.setAverageScore(studentScore);
-            }else{
-                commonPlayer.setAverageScore(teacherScore.multiply(teacherFractionRatio).add(studentScore.multiply(studentFractionRatio)));
-            }
-        }else{
-            commonPlayer.setAverageScore(BigDecimal.ZERO);
-        }
+        completeIt(player);
         SocketMessage socketMessage=new SocketMessage();
         socketMessage.setName("player");
-        socketMessage.add("player", commonPlayer);
+        socketMessage.add("player", player);
         MyWebSocket.sendInfo(socketMessage.toJSON());
-        return commonPlayer;
+        return player;
     }
 
     @CrossOrigin
@@ -213,5 +130,44 @@ public class CommonController {
         studentScoreList = scoreRepository.findByContestIdAndPlayerIdAndType(activeContest, id, ScoreType.STUDENT.name());
         teacherScoreList= scoreRepository.findByContestIdAndPlayerIdAndType(activeContest, id, ScoreType.TEACHER.name());
         return new ScoreResult(studentScoreList, teacherScoreList);
+    }
+
+    private void completeIt(Player player) {
+        if (player.getScoreList() == null || player.getScoreList().size() == 0) {
+            player.setNumber(0);
+            player.setAverageScore(BigDecimal.ZERO);
+        } else {
+            player.setNumber(player.getScoreList().size());
+            BigDecimal studentFractionRatio = dictionaryUtil.getStudentFractionRatio();
+            BigDecimal teacherFractionRatio = dictionaryUtil.getTeacherFractionRatio();
+            AtomicReference<BigDecimal> teacherScore = new AtomicReference<>();
+            AtomicReference<BigDecimal> studentScore = new AtomicReference<>();
+            teacherScore.set(BigDecimal.ZERO);
+            studentScore.set(BigDecimal.ZERO);
+            player.getScoreList().stream()
+                    .filter(score -> score.getType().equals(ScoreType.TEACHER.name()))
+                    .forEach(score -> teacherScore.set(teacherScore.get().add(score.getValue())));
+            player.getScoreList().stream()
+                    .filter(score -> score.getType().equals(ScoreType.STUDENT.name()))
+                    .forEach(score -> teacherScore.set(teacherScore.get().add(score.getValue())));
+            Long teacherNumber = player.getScoreList().stream()
+                    .filter(score -> score.getType().equals(ScoreType.TEACHER.name()))
+                    .count();
+            Long studentNumber = player.getScoreList().size() - teacherNumber;
+            if (teacherNumber == 0 && studentNumber == 0) {
+                player.setAverageScore(BigDecimal.ZERO);
+            } else if (studentNumber == 0) {
+                player.setAverageScore(teacherScore.get().divide(BigDecimal.valueOf(teacherNumber), 3, BigDecimal.ROUND_HALF_UP));
+            } else if (teacherNumber == 0) {
+                player.setAverageScore(studentScore.get().divide(BigDecimal.valueOf(studentNumber), 3, BigDecimal.ROUND_HALF_UP));
+            } else {
+                player.setAverageScore(teacherScore.get()
+                        .divide(BigDecimal.valueOf(teacherNumber), 3, BigDecimal.ROUND_HALF_UP)
+                        .multiply(teacherFractionRatio)
+                        .add(studentScore.get()
+                                .divide(BigDecimal.valueOf(studentNumber), 3, BigDecimal.ROUND_HALF_UP)
+                                .multiply(studentFractionRatio)));
+            }
+        }
     }
 }

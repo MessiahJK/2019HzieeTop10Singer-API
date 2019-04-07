@@ -1,5 +1,6 @@
 package us.betahouse.toptensinger.dao;
 
+import com.alibaba.fastjson.JSON;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +11,6 @@ import us.betahouse.toptensinger.model.builder.PlayerBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.*;
 
 
 @RunWith(SpringRunner.class)
@@ -44,6 +43,20 @@ public class PlayerRepositoryTest {
             playerList.add(playerBuilder.build());
         }
         playerRepository.saveAll(playerList);
+    }
+
+    @Test
+    public void test1(){
+        Player player=playerRepository.findById(1L).get();
+        System.out.println(JSON.toJSONString(player));
+        System.out.println(player.getScoreList().get(1).getPlayer());
+//        System.out.println(player);
+    }
+    @Test
+    public void test2(){
+        List<Player> playerList=playerRepository.findByContestId(1L);
+        playerList.forEach(player -> player.setNumber(player.getScoreList().size()));
+        System.out.println(playerList);
     }
 
 }

@@ -4,6 +4,7 @@
  */
 package us.betahouse.toptensinger.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -40,6 +41,7 @@ public class Contest {
     /**
      * 创建时间
      */
+    @JsonIgnore
     @CreatedDate
     @Column(name = "gmt_create", nullable = false)
     private Date gmtCreate;
@@ -47,6 +49,7 @@ public class Contest {
     /**
      * 修改时间
      */
+    @JsonIgnore
     @LastModifiedDate
     @Column(name = "gmt_modified", nullable = false)
     private Date gmtModified;
