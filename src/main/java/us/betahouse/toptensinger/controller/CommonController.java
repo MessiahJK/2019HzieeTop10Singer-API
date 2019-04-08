@@ -118,9 +118,6 @@ public class CommonController {
         if(id==null){
             return false;
         }
-        Long activeContest=dictionaryUtil.getActiveContest();
-        System.out.println(activeContest);
-        System.out.println(id);
         Player player=playerRepository.getOne(id);
         List<Score> scoreList=playerRepository.getOne(id).getScoreList();
         player.setScoreList(null);
