@@ -119,7 +119,11 @@ public class CommonController {
             return false;
         }
         Long activeContest=dictionaryUtil.getActiveContest();
-        List<Score> scoreList=scoreRepository.findByContestIdAndPlayerId(activeContest, id);
+        System.out.println(activeContest);
+        System.out.println(id);
+        Player player=playerRepository.getOne(id);
+        List<Score> scoreList=playerRepository.getOne(id).getScoreList();
+        player.setScoreList(null);
         scoreRepository.deleteAll(scoreList);
         //socket
         SocketMessage socketMessage=new SocketMessage();
@@ -209,7 +213,7 @@ public class CommonController {
                     .forEach(score -> teacherScore.set(teacherScore.get().add(score.getValue())));
             player.getScoreList().stream()
                     .filter(score -> score.getType().equals(ScoreType.STUDENT.name()))
-                    .forEach(score -> teacherScore.set(teacherScore.get().add(score.getValue())));
+                    .forEach(score -> studentScore.set(studentScore.get().add(score.getValue())));
             Long teacherNumber = player.getScoreList().stream()
                     .filter(score -> score.getType().equals(ScoreType.TEACHER.name()))
                     .count();
@@ -230,4 +234,6 @@ public class CommonController {
             }
         }
     }
+
+
 }

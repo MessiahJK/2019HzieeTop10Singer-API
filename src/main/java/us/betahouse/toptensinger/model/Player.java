@@ -5,6 +5,7 @@
 package us.betahouse.toptensinger.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -24,6 +25,7 @@ import java.util.List;
 @Entity
 @Data
 @EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties(value = { "hibernateLazyInitializer", "handler" })
 public class Player {
     /**
      * id
@@ -73,7 +75,7 @@ public class Player {
     /**
      * 创建时间
      */
-    @JsonIgnore
+   @JsonIgnore
     @CreatedDate
     @Column(name = "gmt_create", nullable = false)
     private Date gmtCreate;
@@ -81,7 +83,7 @@ public class Player {
     /**
      * 修改时间
      */
-    @JsonIgnore
+   @JsonIgnore
     @LastModifiedDate
     @Column(name = "gmt_modified", nullable = false)
     private Date gmtModified;
